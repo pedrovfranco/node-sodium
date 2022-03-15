@@ -21,21 +21,6 @@
 #include "private/implementations.h"
 #include "private/mutex.h"
 
-#if !defined(_MSC_VER) && 0
-# warning *** This is unstable, untested, development code.
-# warning It might not compile. It might not work as expected.
-# warning It might be totally insecure.
-# warning Do not use this in production.
-# warning Use releases available at https://download.libsodium.org/libsodium/releases/ instead.
-# warning Alternatively, use the "stable" branch in the git repository.
-#endif
-
-#if !defined(_MSC_VER) && (!defined(CONFIGURED) || CONFIGURED != 1)
-# warning *** The library is being compiled using an undocumented method.
-# warning This is not supported. It has not been tested, it might not
-# warning work as expected, and performance is likely to be suboptimal.
-#endif
-
 static volatile int initialized;
 static volatile int locked;
 
@@ -72,7 +57,7 @@ sodium_init(void)
 static CRITICAL_SECTION _sodium_lock;
 static volatile LONG    _sodium_lock_initialized;
 
-int
+static int
 _sodium_crit_init(void)
 {
     LONG status = 0L;
@@ -140,8 +125,6 @@ sodium_crit_enter(void)
 int
 sodium_crit_leave(void)
 {
-    int ret;
-
     if (locked == 0) {
 # ifdef EPERM
         errno = EPERM;
@@ -153,7 +136,7 @@ sodium_crit_leave(void)
     return pthread_mutex_unlock(&_sodium_lock);
 }
 
-#elif defined(HAVE_ATOMIC_OPS) && !defined(__EMSCRIPTEN__) && !defined(__native_client__)
+#elif defined(HAVE_ATOMIC_OPS) && !defined(__EMSCRIPTEN__)
 
 static volatile int _sodium_lock;
 
@@ -168,7 +151,9 @@ sodium_crit_enter(void)
 # ifdef HAVE_NANOSLEEP
         (void) nanosleep(&q, NULL);
 # elif defined(__x86_64__) || defined(__i386__)
-        __asm__ __volatile__ ("pause");
+        __asm__ __volatile__ ("pause":::"memory");
+# elif defined(__aarch64__)
+        __asm__ __volatile__ ("yield":::"memory");
 # endif
     }
     return 0;
@@ -229,3 +214,15 @@ sodium_set_misuse_handler(void (*handler)(void))
     }
     return 0;
 }
+
+#if defined(_WIN32) && !defined(SODIUM_STATIC)
+BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved) {
+    (void) hinstDLL;
+    (void) lpReserved;
+
+    if (fdwReason == DLL_PROCESS_DETACH && _sodium_lock_initialized == 2) {
+        DeleteCriticalSection(&_sodium_lock);
+    }
+    return TRUE;
+}
+#endif

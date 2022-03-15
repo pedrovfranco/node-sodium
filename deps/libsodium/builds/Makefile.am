@@ -25,6 +25,7 @@ EXTRA_DIST = \
 	msvc/properties/ReleaseSEXE.props \
 	msvc/properties/Win32.props \
 	msvc/properties/x64.props \
+	msvc/properties/ARM64.props \
 	msvc/resource.h \
 	msvc/resource.rc \
 	msvc/version.h \
@@ -62,4 +63,11 @@ EXTRA_DIST = \
 	msvc/vs2017/libsodium/libsodium.xml \
 	msvc/vs2017/libsodium.import.props \
 	msvc/vs2017/libsodium.import.xml \
-	msvc/vs2017/libsodium.sln
+	msvc/vs2017/libsodium.sln \
+	msvc/vs2019/libsodium/libsodium.props \
+	msvc/vs2019/libsodium/libsodium.vcxproj \
+	msvc/vs2019/libsodium/libsodium.vcxproj.filters \
+	msvc/vs2019/libsodium/libsodium.xml \
+	msvc/vs2019/libsodium.import.props \
+	msvc/vs2019/libsodium.import.xml \
+	msvc/vs2019/libsodium.sln

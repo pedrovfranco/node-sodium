@@ -4,6 +4,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "private/quirks.h"
+
 /*
  fe means field element.
  Here the field is \Z/(2^255-19).
@@ -87,9 +89,9 @@ void ge25519_p1p1_to_p2(ge25519_p2 *r, const ge25519_p1p1 *p);
 
 void ge25519_p1p1_to_p3(ge25519_p3 *r, const ge25519_p1p1 *p);
 
-void ge25519_add(ge25519_p1p1 *r, const ge25519_p3 *p, const ge25519_cached *q);
+void ge25519_add_cached(ge25519_p1p1 *r, const ge25519_p3 *p, const ge25519_cached *q);
 
-void ge25519_sub(ge25519_p1p1 *r, const ge25519_p3 *p, const ge25519_cached *q);
+void ge25519_sub_cached(ge25519_p1p1 *r, const ge25519_p3 *p, const ge25519_cached *q);
 
 void ge25519_scalarmult_base(ge25519_p3 *h, const unsigned char *a);
 
@@ -110,16 +112,33 @@ int ge25519_has_small_order(const unsigned char s[32]);
 
 void ge25519_from_uniform(unsigned char s[32], const unsigned char r[32]);
 
+void ge25519_from_hash(unsigned char s[32], const unsigned char h[64]);
+
+/*
+ Ristretto group
+ */
+
+int ristretto255_frombytes(ge25519_p3 *h, const unsigned char *s);
+
+void ristretto255_p3_tobytes(unsigned char *s, const ge25519_p3 *h);
+
+void ristretto255_from_hash(unsigned char s[32], const unsigned char h[64]);
+
 /*
  The set of scalars is \Z/l
  where l = 2^252 + 27742317777372353535851937790883648493.
  */
 
-void sc25519_reduce(unsigned char *s);
+void sc25519_invert(unsigned char recip[32], const unsigned char s[32]);
 
-void sc25519_muladd(unsigned char *s, const unsigned char *a,
-                    const unsigned char *b, const unsigned char *c);
+void sc25519_reduce(unsigned char s[64]);
 
-int sc25519_is_canonical(const unsigned char *s);
+void sc25519_mul(unsigned char s[32], const unsigned char a[32],
+                 const unsigned char b[32]);
+
+void sc25519_muladd(unsigned char s[32], const unsigned char a[32],
+                    const unsigned char b[32], const unsigned char c[32]);
+
+int sc25519_is_canonical(const unsigned char s[32]);
 
 #endif
